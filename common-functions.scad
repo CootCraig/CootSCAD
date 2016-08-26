@@ -1,4 +1,5 @@
 function inch(val=1) = val*1;
+function mm(val=1) = inch(val * 0.0393701);
 
 function color_1() = [242/255,	243/255,	244/255];
 function color_2() = [34/255,	34/255,	34/255];
