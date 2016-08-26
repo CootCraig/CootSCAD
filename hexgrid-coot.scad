@@ -8,6 +8,7 @@ hexgrid_coot_w_spacing = inch(0.8);
 hexgrid_coot_hole_shrinkage = 0.9; // a percentage
 
 // See:
+// http://www-cs-students.stanford.edu/~amitp/gameprog.html#hex
 // http://www.redblobgames.com/grids/hexagons/#basics
 // http://www.redblobgames.com/grids/hexagons/
 // http://playtechs.blogspot.com/2007/04/hex-grids.html
