@@ -28,10 +28,10 @@ triangle_grid_coot_hole_shrinkage = 0.9; // a percentage
 // Translating to a cartesion xy this is: w/h = sqrt(3)/2 ~= 0.866
 
 module triangle_grid_plate_coot( plate_width = triangle_grid_coot_plate_width,
-                           plate_height = triangle_grid_coot_plate_height,
-                           plate_depth = triangle_grid_coot_plate_depth,
-                           w_spacing = triangle_grid_coot_w_spacing,
-                           hole_shrinkage = triangle_grid_coot_hole_shrinkage) {
+                                 plate_height = triangle_grid_coot_plate_height,
+                                 plate_depth = triangle_grid_coot_plate_depth,
+                                 w_spacing = triangle_grid_coot_w_spacing,
+                                 hole_shrinkage = triangle_grid_coot_hole_shrinkage) {
 
   w_to_h_ratio = sqrt(3) / 2;
   w_spacing_half = w_spacing / 2;
@@ -79,7 +79,7 @@ module triangle_grid_plate_coot( plate_width = triangle_grid_coot_plate_width,
                    (bisect_2[0][1] + ((bisect_2[1][1] - bisect_2[0][1]) * start_shrinkage))];
 
     // The shrunk triangle is extruded and cut from the rectangular base plate
-    translate([0, -(plate_depth / 4)]) {
+    translate([0, 0, -(plate_depth / 4)]) {
       linear_extrude(height = (plate_depth * 2)) { polygon([shrink_pt_0,shrink_pt_1,shrink_pt_2]); }
     }
   }
