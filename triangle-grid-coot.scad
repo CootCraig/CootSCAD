@@ -1,11 +1,11 @@
 use <common-functions.scad>;
 
 // Module parameters
-hexgrid_coot_plate_width = inch(14);
-hexgrid_coot_plate_height = inch(10);
-hexgrid_coot_plate_depth = inch(0.25);
-hexgrid_coot_w_spacing = inch(0.8);
-hexgrid_coot_hole_shrinkage = 0.9; // a percentage
+triangle_grid_coot_plate_width = inch(14);
+triangle_grid_coot_plate_height = inch(10);
+triangle_grid_coot_plate_depth = inch(0.25);
+triangle_grid_coot_w_spacing = inch(0.8);
+triangle_grid_coot_hole_shrinkage = 0.9; // a percentage
 
 // See:
 // http://www-cs-students.stanford.edu/~amitp/gameprog.html#hex
@@ -27,49 +27,76 @@ hexgrid_coot_hole_shrinkage = 0.9; // a percentage
 
 // Translating to a cartesion xy this is: w/h = sqrt(3)/2 ~= 0.866
 
-module hexgrid_plate_coot( plate_width = hexgrid_coot_plate_width,
-                           plate_height = hexgrid_coot_plate_height,
-                           plate_depth = hexgrid_coot_plate_depth,
-                           w_spacing = hexgrid_coot_w_spacing,
-                           hole_shrinkage = hexgrid_coot_hole_shrinkage) {
+module triangle_grid_plate_coot( plate_width = triangle_grid_coot_plate_width,
+                           plate_height = triangle_grid_coot_plate_height,
+                           plate_depth = triangle_grid_coot_plate_depth,
+                           w_spacing = triangle_grid_coot_w_spacing,
+                           hole_shrinkage = triangle_grid_coot_hole_shrinkage) {
 
-  hole_overage = 1 + ((1 - hole_shrinkage) / 4); // a percentage
   w_to_h_ratio = sqrt(3) / 2;
   w_spacing_half = w_spacing / 2;
-  h_spacing_quarter = (w_spacing / w_to_h_ratio) / 4;
-  shrinkage_w_half = hole_shrinkage * w_spacing_half;
-  overage_w_half = hole_overage * w_spacing_half;
+  h_spacing_half = (w_spacing / w_to_h_ratio) / 2;
+  h_spacing_quarter = h_spacing_half / 2;
+  start_shrinkage = (1 - hole_shrinkage);
 
-  module hex_poly_at_origin() {
-    difference() {
-      hex_block(overage_w_half,plate_depth);
-      translate([0,0,-(plate_depth/4)]) {
-        hex_block(shrinkage_w_half,plate_depth*2);
+  module hex_triangles_at_origin() {
+    triangle_pts = [[0, 0],
+                   [w_spacing_half,h_spacing_quarter],
+                   [0,h_spacing_half],
+                   [-w_spacing_half,h_spacing_quarter],
+                   [-w_spacing_half,-h_spacing_quarter],
+                   [0,-h_spacing_half],
+                   [w_spacing_half,-h_spacing_quarter]];
+    triangle_polys = [[0,1,2],
+                      [0,2,3],
+                      [0,3,4],
+                      [0,4,5],
+                      [0,5,6],
+                      [0,6,1]];
+    for (boundary_pts = triangle_polys) {
+      shrink_and_extrude_triangle(pts = [triangle_pts[boundary_pts[0]],
+                                         triangle_pts[boundary_pts[1]],
+                                         triangle_pts[boundary_pts[2]]]);
+    }
+  }
+
+  module shrink_and_extrude_triangle(pts = [[0, 0], [w_spacing_half,h_spacing_quarter], [0,h_spacing_half]]) {
+
+    // bisector is from each point to the center of the opposite face
+    bisect_0 = [pts[0], [((pts[1][0] + pts[2][0]) / 2), ((pts[1][1] + pts[2][1]) / 2)]];
+    bisect_1 = [pts[1], [((pts[2][0] + pts[0][0]) / 2), ((pts[2][1] + pts[0][1]) / 2)]];
+    bisect_2 = [pts[2], [((pts[0][0] + pts[1][0]) / 2), ((pts[0][1] + pts[1][1]) / 2)]];
+
+    // linear interpolation along bisector line
+    // see: https://en.wikipedia.org/wiki/Linear_interpolation
+    shrink_pt_0 = [(bisect_0[0][0] + ((bisect_0[1][0] - bisect_0[0][0]) * start_shrinkage)),
+                   (bisect_0[0][1] + ((bisect_0[1][1] - bisect_0[0][1]) * start_shrinkage))];
+
+    shrink_pt_1 = [(bisect_1[0][0] + ((bisect_1[1][0] - bisect_1[0][0]) * start_shrinkage)),
+                   (bisect_1[0][1] + ((bisect_1[1][1] - bisect_1[0][1]) * start_shrinkage))];
+
+    shrink_pt_2 = [(bisect_2[0][0] + ((bisect_2[1][0] - bisect_2[0][0]) * start_shrinkage)),
+                   (bisect_2[0][1] + ((bisect_2[1][1] - bisect_2[0][1]) * start_shrinkage))];
+
+    // The shrunk triangle is extruded and cut from the rectangular base plate
+    translate([0, -(plate_depth / 4)]) {
+      linear_extrude(height = (plate_depth * 2)) { polygon([shrink_pt_0,shrink_pt_1,shrink_pt_2]); }
+    }
+  }
+
+  difference() {
+    cube(size = [plate_width, plate_height, plate_depth], center = false);
+
+    for(grid_pos_h = [0 : (6 * h_spacing_quarter) : plate_height]) {
+      for(grid_pos_w = [0 : w_spacing : plate_width]) {
+        translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
       }
     }
-  }
-
-  module hex_block(w_half,block_height) {
-    h_half = w_half / w_to_h_ratio;
-    h_quarter = h_half / 2;
-    hex_vector = [[w_half,h_quarter],
-                  [0,h_half],
-                  [-w_half,h_quarter],
-                  [-w_half,-h_quarter],
-                  [0,-h_half],
-                  [w_half,-h_quarter]];
-    linear_extrude(height=block_height) { polygon(hex_vector); }
-  }
-
-  for(grid_pos_h = [0 : (6 * h_spacing_quarter) : plate_height]) {
-    for(grid_pos_w = [0 : w_spacing : plate_width]) {
-      translate([grid_pos_w,grid_pos_h,0]) { hex_poly_at_origin(); }
-    }
-  }
-
-  for(grid_pos_h = [(3 * h_spacing_quarter) : (6 * h_spacing_quarter) : plate_height + (3 * h_spacing_quarter)]) {
-    for(grid_pos_w = [(w_spacing / 2) : w_spacing : (plate_width + w_spacing)]) {
-      translate([grid_pos_w,grid_pos_h,0]) { hex_poly_at_origin(); }
+  
+    for(grid_pos_h = [(3 * h_spacing_quarter) : (6 * h_spacing_quarter) : plate_height + (3 * h_spacing_quarter)]) {
+      for(grid_pos_w = [(w_spacing / 2) : w_spacing : (plate_width + w_spacing)]) {
+        translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
+      }
     }
   }
 }
