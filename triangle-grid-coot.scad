@@ -84,20 +84,30 @@ module triangle_grid_plate_coot( plate_width = triangle_grid_coot_plate_width,
     }
   }
 
-  difference() {
-    cube(size = [plate_width, plate_height, plate_depth], center = false);
+  intersection () {
+    translate([0,0,-(plate_depth / 4)]) {
+      cube(size = [plate_width, plate_height, plate_depth * 2], center = false);
+    }
 
-    for(grid_pos_h = [0 : (6 * h_spacing_quarter) : plate_height]) {
-      for(grid_pos_w = [0 : w_spacing : plate_width]) {
-        translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
+    difference() {
+      // extend the base plate, it will be trimmed later
+      translate([-(plate_width * 0.25),-(plate_height * 0.25),0]) {
+        cube(size = [plate_width * 1.5, plate_height * 1.5, plate_depth], center = false);
       }
-    }
   
-    for(grid_pos_h = [(3 * h_spacing_quarter) : (6 * h_spacing_quarter) : plate_height + (3 * h_spacing_quarter)]) {
-      for(grid_pos_w = [(w_spacing / 2) : w_spacing : (plate_width + w_spacing)]) {
-        translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
+      for(grid_pos_h = [0 : (6 * h_spacing_quarter) : plate_height + (2 * h_spacing_half)]) {
+        for(grid_pos_w = [-w_spacing : w_spacing : plate_width + w_spacing]) {
+          translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
+        }
+      }
+    
+      for(grid_pos_h = [(3 * h_spacing_quarter) : (6 * h_spacing_quarter) : plate_height + (3 * h_spacing_quarter)]) {
+        for(grid_pos_w = [-(w_spacing / 2) : w_spacing : (plate_width + w_spacing)]) {
+          translate([grid_pos_w,grid_pos_h,0]) { hex_triangles_at_origin(); }
+        }
       }
     }
+
   }
 }
 
