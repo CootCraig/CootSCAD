@@ -16,6 +16,10 @@ export OPENSCADPATH=$HOME/dev/CootSCAD
 
 <img src="examples/hexgrid-small-ex.png" width="400px">
 
+### examples/triangle-grid-small.scad
+
+<img src="examples/triangle-grid-ex.png" width="400px">
+
 ### Hex grid links
 
 <ul>
