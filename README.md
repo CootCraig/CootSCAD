@@ -37,6 +37,11 @@ export OPENSCADPATH=$HOME/dev/CootSCAD
   </li>
 </ul>
 
+
+## Handle
+
+<img src="examples/handle-ex1-20160828.png" width="500px">
+
 <!--
 html boilerplate
 <a href="" target="_blank"></a>
